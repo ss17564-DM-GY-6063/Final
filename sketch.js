@@ -88,6 +88,7 @@
 function setup() {
 	createCanvas(400, 400);
 	background(0);
+
 }
 
 function drawheart() {
@@ -95,14 +96,16 @@ function drawheart() {
   drawingContext.shadowOffsetY = 0;
   drawingContext.shadowBlur = 10;
   drawingContext.shadowColor = '#FFFFFF';
+
 	fill(255,255,0);
 	strokeWeight(2);
 	stroke(255,255,255,100);
+
 	push();
 	beginShape();
 	
 	for(var a = 0; a < TWO_PI; a += 0.01){
-		var r = noise(10,10,frameCount/50)*10   //控制爱心变大小的重要参数
+    var r = noise(10, 10, frameCount / 100) * 10;   //控制爱心变大小的重要参数
 		var x = r * 16 * pow(sin(a),3);
 		var y = -r * (13*cos(a) - 5*cos(2*a) - 2*cos(3 * a) - cos(4 * a));
 		vertex(x,y);
@@ -115,22 +118,5 @@ function draw() {
 	background(0,10);
 	translate(width/2,height/2);
 	drawheart();
-  // drawingContext.shadowOffsetX = 0;
-  // drawingContext.shadowOffsetY = 0;
-  // drawingContext.shadowBlur = 10;
-  // drawingContext.shadowColor = '#FFFFFF';
-	// fill(255,255,0);
-	// strokeWeight(2);
-	// stroke(255,255,255,100);
-	// push();
-	// beginShape();
-	
-	// for(var a = 0; a < TWO_PI; a += 0.01){
-	// 	var r = noise(10,10,frameCount/50)*10   //控制爱心变大小的重要参数
-	// 	var x = r * 16 * pow(sin(a),3);
-	// 	var y = -r * (13*cos(a) - 5*cos(2*a) - 2*cos(3 * a) - cos(4 * a));
-	// 	vertex(x,y);
-	// }
-	// endShape();
-	// pop();
+ 
 }
