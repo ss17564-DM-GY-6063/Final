@@ -1,10 +1,30 @@
 // serial variables
 let mSerial;
 let connectButton;
+let serialButton;
 let readyToReceive;
 
 // project variables
-let i = 5;
+let V;
+let color = {
+  r: 130,
+  g: 255,
+  b: 255,
+};
+
+let mFilter;
+let mAmp;
+let mFreq;
+let song;
+let fft;
+let particles = [];
+
+function preload() {
+  song = loadSound("./California.mp3");
+  song2 = loadSound("./piano.mp3");
+  song3 = loadSound("./songnoclick.mp3");
+  song4 = loadSound("./bach.mp3");
+}
 
 function receiveSerial() {
   let line = mSerial.readUntil("\n");
@@ -19,13 +39,16 @@ function receiveSerial() {
 
   // get data from Serial string
   let data = JSON.parse(line).data;
-  // print(data);
+  // print(data); //test if the html connected to arduino, the data
   // return;
   let a0 = data.A0;
+  let a1 = data.A1;
+
 
   // // use data to update project variables
-    i = map(a0.value, 0, 4095, 20, 50);
-   
+    color.g = map(a1.value, 0, 4095, 0, 255);
+    mFreq = map(a0.value, 0, 4095, 100, 5000);
+
   // serial update
   readyToReceive = true;
 }
@@ -39,103 +62,162 @@ function connectToSerial() {
   }
 }
 
+function gotData() {
+  let currentString = serial.readStringUntil("\r\n");
+  trim(currentString);
+  if (!currentString) return;
+  latestData = currentString;
+}
+
+
 function setup() {
-  // setup project
-  createCanvas(400, 400);
-	background(0);
+  createCanvas(windowWidth, windowHeight);
+  angleMode(DEGREES);
+  fft = new p5.FFT();
+
+  song.disconnect();
+
+  mFilter = new p5.Filter("bandpass");
+  mFilter.disconnect();
+  mFilter.res(4);
+
+  mAmp = new p5.Amplitude();
+
+  song.connect(mFilter);
+  mFilter.connect(p5.soundOut);
 
   // setup serial
   readyToReceive = false;
-
   mSerial = createSerial();
-
   connectButton = createButton("Connect To Serial");
   connectButton.position(width / 2, height / 2);
   connectButton.mousePressed(connectToSerial);
 }
 
-function drawheart() {
-  drawingContext.shadowOffsetX = 0;
-  drawingContext.shadowOffsetY = 0;
-  drawingContext.shadowBlur = 10;
-  drawingContext.shadowColor = '#FFFFFF';
 
-	fill(255,255,0);
-	strokeWeight(2);
-	stroke(255,255,255,100);
+function drawText() {
+  fill(255);
+  textSize(15);
 
-	push();
-	beginShape();
-	
-	for(let a = 0; a < TWO_PI; a += 0.01){
-    for (let i=0; i<10; i+= 0.01) {
-    let r = random(0,50);   //控制爱心变大小的重要参数
-		let x = r * 16 * pow(sin(a),3);
-		let y = -r * (13 * cos(a) - 5 * cos(2*a) - 2 * cos(3 * a) - cos(4 * a));
-		vertex(x,y);
-    }
-	}
-	endShape();
-	pop();
+  let texts = [
+    "This is a physical music Controller",
+    "Press the button to play/pause the music",
+    "Try to adjust the potentiometers",
+    "to see different visual effects",
+    "to experience the DJ!"
+  ];
+
+  for (let i = 0; i < texts.length; i++) {
+    text(texts[i], 20, 50 + 25 * i);
+  }
 }
 
 function draw() {
-  // project logic
-    background(0,10);
-    translate(width/2,height/2);
-    drawheart();
-   
-  // update serial: request new data
-  if (mSerial.opened() && readyToReceive) {
-    readyToReceive = false;
-    mSerial.clear();
-    mSerial.write(0xab);
+  background(0);
+  drawText();
+
+  translate(width / 2, height / 2);
+  mFilter.freq(mFreq);
+
+  fft.analyze();
+  amp = fft.getEnergy(20, 200);
+  push();
+  if (amp > 230) {
+    rotate(random(-0.5, 0.5));
+  }
+  pop();
+
+  let alpha = map(amp, 0, 255, 180, 150);
+  fill(0, alpha);
+  noStroke();
+  rect(0, 0, width, height);
+
+  stroke(130, color.g, 255);
+  strokeWeight(5);
+  fill(130, color.g, 255);
+
+  let wave = fft.waveform();
+
+  for (let t = -1; t <= 1; t += 2) {
+    beginShape();
+    for (let i = 0; i <= 180; i += 2) {
+      let index = floor(map(i, 0, 180, 0, wave.length - 1));
+      let r = map(wave[index], -1, 1, 100, 230);   //the size of circle
+      let x = r * sin(i) * t ;
+      let y = r * cos(i) ;
+      vertex(x, y);
+    }
+    endShape();
   }
 
-  // update serial: read new data
-  if (mSerial.availableBytes() > 8) {
-    receiveSerial();
+  let p = new Particle();
+  particles.push(p);
+
+  for (let i = particles.length - 1; i >= 0; i--) {
+    if (!particles[i].edges()) {
+      particles[i].update(amp > 230);
+      particles[i].show();
+    } else {
+      particles.splice(i, 1);
+    }
+  }
+
+    // update serial: request new data
+    if (mSerial.opened() && readyToReceive) {
+      readyToReceive = false;
+      mSerial.clear();
+      mSerial.write(0xab);
+    }
+  
+    // update serial: read new data
+    if (mSerial.availableBytes() > 8) {
+      receiveSerial();
+    }
+}
+
+function mouseClicked() {
+  if (song.isPlaying()) {
+    song.pause();
+  } else {
+    song.play();
   }
 }
 
+class Particle {
+  constructor() {
+    this.pos = p5.Vector.random2D().mult(160);
+    this.vel = createVector(0, 0);
+    this.acc = this.pos.copy().mult(random(0.0001, 0.00001));
+    this.w = random(3, 10);
+    this.color = [random(200, 255), random(200, 255), random(200, 255)];
+  }
 
+  update(cond) {
+    this.vel.add(this.acc);
+    this.pos.add(this.vel);
+    if (cond) {
+      this.pos.add(this.vel);
+      this.pos.add(this.vel);
+      this.pos.add(this.vel);
+    }
+  }
 
-// function setup() {
-// 	createCanvas(400, 400);
-// 	background(0);
+  edges() {
+    if (
+      this.pos.x < -width  ||
+      this.pos.x > width  ||
+      this.pos.y < -height  ||
+      this.pos.y > height 
+    ) {
+      return true;
+    } else {
+      return false;
+    }
+  }
 
-// }
-
-// function drawheart() {
-//   drawingContext.shadowOffsetX = 0;
-//   drawingContext.shadowOffsetY = 0;
-//   drawingContext.shadowBlur = 10;
-//   drawingContext.shadowColor = '#FFFFFF';
-
-// 	fill(255,255,0);
-// 	strokeWeight(2);
-// 	stroke(255,255,255,100);
-
-// 	push();
-// 	beginShape();
-	
-// 	for(let a = 0; a < TWO_PI; a += 0.01){
-//     let r = noise(10, 10, frameCount / 100) * 10;   //the variable can be controlled by sensor?
-// 		let x = r * 16 * pow(sin(a),3);
-// 		let y = -r * (13 * cos(a) - 5 * cos(2*a) - 2 * cos(3 * a) - cos(4 * a));
-// 		vertex(x,y);
-// 	}
-// 	endShape();
-// 	pop();
-// }
-
-// function drawemoji() {
-
-// }
-
-// function draw() {
-// 	background(0,10);
-// 	translate(width/2,height/2);
-// 	drawheart();
- 
-// }
+  show() {
+    noStroke();
+    fill(this.color);
+    ellipse(this.pos.x, this.pos.y, 4);
+  }
+}

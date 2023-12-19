@@ -47,3 +47,8 @@ To ensure that each heartbeat project is unique, I will conduct a user test shor
 
 ## Short discussion of why your project is relevant:
 I hope to use the fundamental coding knowledge we've acquired to assist more people, incorporating not only artistic elements but also practical applications.
+
+# pulsesensor broke
+Professor helped me to check a lot of times, unfortunately it didn't work. So I put my efforts to another idea and tried.
+
+# update project
