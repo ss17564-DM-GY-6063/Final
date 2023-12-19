@@ -17,9 +17,11 @@ void sendData() {
   JsonObject data = resJson.createNestedObject("data");
   JsonObject A0 = data.createNestedObject("A0");
   JsonObject A1 = data.createNestedObject("A1");
+  JsonObject d2 = data.createNestedObject("D2");
 
   A0["value"] = a0Val;
   A1["value"] = a1Val;
+  d2["value"] = buttonState;
 
 
   String resTxt = "";
@@ -33,26 +35,15 @@ void setup() {
   Serial.begin(9600);
   while (!Serial) {}
 
-  // pinMode(B0PIN, INPUT);
+  pinMode(buttonPin, INPUT);
 }
 
 void loop() {
   // read pins
   a0Val = analogRead(A0);
   a1Val = analogRead(A1);
+  buttonState = digitalRead(buttonPin);
  
-  // knock
-  float currentD9Value = float(analogRead(D9));
-  int avgD9Value = int(0.9 * prevD9Value + 0.1 * currentD9Value);
-  prevD9Value = avgD9Value;
-
-  int currentKnockValue = (avgD9Value > THRESHOLD);
-
-  if (prevKnockValue != currentKnockValue) {
-    knockCount += currentKnockValue;
-  }
-  prevKnockValue = currentKnockValue;
-
   // Serial.println(String(currentD9Value) + " " + currentKnockValue + " " + knockCount);
 
 

@@ -3,6 +3,7 @@ let mSerial;
 let connectButton;
 let serialButton;
 let readyToReceive;
+let pred2 = 0;
 
 // project variables
 let V;
@@ -12,18 +13,34 @@ let color = {
   b: 255,
 };
 
+// song
+let currentSongIndex = 0;
+let songs = []; 
+let isPlaying = false; 
 let mFilter;
 let mAmp;
 let mFreq;
-let song;
 let fft;
+
 let particles = [];
 
 function preload() {
-  song = loadSound("./California.mp3");
-  song2 = loadSound("./piano.mp3");
-  song3 = loadSound("./songnoclick.mp3");
-  song4 = loadSound("./bach.mp3");
+  songs[0] = loadSound("./California.mp3");
+  songs[1] = loadSound("./piano.mp3");
+  songs[2] = loadSound("./songnoclick.mp3");
+  songs[3] = loadSound("./bach.mp3");
+}
+
+function switchSong() {
+  if (songs.isPlaying()) {
+    songs[currentSongIndex].pause();
+    currentSongIndex = (currentSongIndex + 1) % songs.length;
+  } else {
+    songs[currentSongIndex].play();
+  }
+
+  songs[currentSongIndex].loop(); 
+  isPlaying = true; 
 }
 
 function receiveSerial() {
@@ -43,6 +60,23 @@ function receiveSerial() {
   // return;
   let a0 = data.A0;
   let a1 = data.A1;
+
+  let d2 = data.D2.value;
+  if(d2 == 1 && pred2 == 0) {
+    print("buttonpress")
+    if (songs[0].isPlaying()) {
+      songs[0].pause();
+    } else {
+      songs[0].play();
+    }
+  }
+  pred2 = d2;
+
+  // let d2 = data.D2.value;
+  // if (d2 == 1 && pred2 == 0) {
+  //   switchSong();
+  // }
+  // pred2 = d2;
 
 
   // // use data to update project variables
@@ -75,16 +109,30 @@ function setup() {
   angleMode(DEGREES);
   fft = new p5.FFT();
 
-  song.disconnect();
+  // song.disconnect();
 
+  // mFilter = new p5.Filter("bandpass");
+  // mFilter.disconnect();
+  // mFilter.res(4);
+
+  // mAmp = new p5.Amplitude();
+
+  // song.connect(mFilter);
+  // mFilter.connect(p5.soundOut);
+
+  // songs[i].disconnect();
   mFilter = new p5.Filter("bandpass");
   mFilter.disconnect();
   mFilter.res(4);
 
   mAmp = new p5.Amplitude();
 
-  song.connect(mFilter);
-  mFilter.connect(p5.soundOut);
+  for (let i = 0; i < songs.length; i++) {
+    songs[i].disconnect(); 
+    songs[i].connect(mFilter);
+  }
+
+  mFilter.connect(p5.soundOut); 
 
   // setup serial
   readyToReceive = false;
@@ -175,13 +223,6 @@ function draw() {
     }
 }
 
-function mouseClicked() {
-  if (song.isPlaying()) {
-    song.pause();
-  } else {
-    song.play();
-  }
-}
 
 class Particle {
   constructor() {
