@@ -55,11 +55,13 @@ Professor helped me to check a lot of times, unfortunately it didn't work. So I 
 I ultimately decided to create a music controller that allows adjusting the output parameters of music, generating corresponding visualizations on an electronic screen. I utilized FFT analysis results to create waveform graphics and incorporated a particle system to enhance the visual effects.
 
 ## System diagram
-![system diagram](IMG_3544.jpeg)
+![System diagram](IMG_3545.jpeg)
 
 ## FSM diagram
+![FSM diagram](IMG_3544.jpeg)
 
 ## Circuit diagram
+![Circuit diagram](IMG_3546.jpeg)
 
 ## Description of any external data or library that you are planning to use
 the sound library
