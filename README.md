@@ -52,3 +52,28 @@ I hope to use the fundamental coding knowledge we've acquired to assist more peo
 Professor helped me to check a lot of times, unfortunately it didn't work. So I put my efforts to another idea and tried.
 
 # update project
+I ultimately decided to create a music controller that allows adjusting the output parameters of music, generating corresponding visualizations on an electronic screen. I utilized FFT analysis results to create waveform graphics and incorporated a particle system to enhance the visual effects.
+
+## System diagram
+[./IMG_3544.jpeg]
+
+## FSM diagram
+
+## Circuit diagram
+
+## Description of any external data or library that you are planning to use
+the sound library
+
+## Description of any sensor, output component or mechanism that you are planning on using or building
+I chose the potentiometers and the button to adjust the values of music frequency and color.
+
+## Reference images, texts and projects
+https://dm-gy-6063-2023f-d.github.io/tutorial/sound-files/
+https://github.com/DM-GY-6063-2023F-D/week13
+
+## Short discussion of why your project is relevant:
+Given our previous readings, I hope that this project can provide the audience and participants with a tangible sense of music frequencies. When the audience can control the frequency of music output and see the waveform on the screen, it serves as a great means of knowledge dissemination. Furthermore, it might also offer the audience an opportunity to experience the work of a DJ.
+
+## Short discussion of feedback from user testing
+Originally, music playback and pause were controlled through mouse clicks, but the audience expressed a stronger preference for achieving this functionality through physical buttons, including the ability to switch songs.
+

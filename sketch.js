@@ -4,6 +4,7 @@ let connectButton;
 let serialButton;
 let readyToReceive;
 let pred2 = 0;
+let pred3 = 0;
 
 // project variables
 let V;
@@ -16,6 +17,8 @@ let color = {
 // song
 let currentSongIndex = 0;
 let songs = []; 
+let song;
+
 let isPlaying = false; 
 let mFilter;
 let mAmp;
@@ -32,12 +35,10 @@ function preload() {
 }
 
 function switchSong() {
-  if (songs.isPlaying()) {
+  if (song.isPlaying()) {
     songs[currentSongIndex].pause();
     currentSongIndex = (currentSongIndex + 1) % songs.length;
-  } else {
-    songs[currentSongIndex].play();
-  }
+  } 
 
   songs[currentSongIndex].loop(); 
   isPlaying = true; 
@@ -56,28 +57,28 @@ function receiveSerial() {
 
   // get data from Serial string
   let data = JSON.parse(line).data;
-  // print(data); //test if the html connected to arduino, the data
+  print(data); //test if the html connected to arduino, the data
   // return;
   let a0 = data.A0;
   let a1 = data.A1;
 
   let d2 = data.D2.value;
   if(d2 == 1 && pred2 == 0) {
-    print("buttonpress")
-    if (songs[0].isPlaying()) {
-      songs[0].pause();
+    print("buttonpress")  // check if d2 was pressed in the monitor
+    if (song.isPlaying()) {
+      song.pause();
     } else {
-      songs[0].play();
+      song.play();
     }
   }
   pred2 = d2;
 
-  // let d2 = data.D2.value;
-  // if (d2 == 1 && pred2 == 0) {
-  //   switchSong();
-  // }
-  // pred2 = d2;
-
+  let d3 = data.D3.value;
+  if (d3 == 1 && pred3 == 0) {
+    print ("buttonpress2");
+    switchSong();
+  }
+  pred3 = d3;
 
   // // use data to update project variables
     color.g = map(a1.value, 0, 4095, 0, 255);
@@ -109,7 +110,19 @@ function setup() {
   angleMode(DEGREES);
   fft = new p5.FFT();
 
-  // song.disconnect();
+  song = songs[currentSongIndex];
+
+  song.disconnect();
+
+  mFilter = new p5.Filter("bandpass");
+  mFilter.disconnect();
+  mFilter.res(4);
+
+  mAmp = new p5.Amplitude();
+
+  song.connect(mFilter);
+  mFilter.connect(p5.soundOut);
+
 
   // mFilter = new p5.Filter("bandpass");
   // mFilter.disconnect();
@@ -117,22 +130,12 @@ function setup() {
 
   // mAmp = new p5.Amplitude();
 
-  // song.connect(mFilter);
-  // mFilter.connect(p5.soundOut);
+  // for (let i = 0; i < songs.length; i++) {
+  //   songs[i].disconnect(); 
+  //   songs[i].connect(mFilter);
+  // }
 
-  // songs[i].disconnect();
-  mFilter = new p5.Filter("bandpass");
-  mFilter.disconnect();
-  mFilter.res(4);
-
-  mAmp = new p5.Amplitude();
-
-  for (let i = 0; i < songs.length; i++) {
-    songs[i].disconnect(); 
-    songs[i].connect(mFilter);
-  }
-
-  mFilter.connect(p5.soundOut); 
+  // mFilter.connect(p5.soundOut); 
 
   // setup serial
   readyToReceive = false;
